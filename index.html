@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Marketing Video Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #34495e;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 120px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #6e8efb;
+        }
+
+        button {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #result {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .video-container {
+            margin-top: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f5f6fa;
+            padding: 1rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .loading::after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80% { content: '....'; }
+            100% { content: '.....'; }
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: #fde8e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Marketing Video Generator</h1>
+        <div class="input-group">
+            <label for="prompt">Enter your marketing prompt:</label>
+            <textarea id="prompt" placeholder="Describe the marketing scenarid you want to create (e.g., 'A professional product photo of a smartphone on a clean white background with soft lighting')..."></textarea>
+        </div>
+        <button id="generateBtn" onclick="generateImage()">Generate Video</button>
+        <div id="loading" class="loading">Generating your marketing Video</div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function generateImage() {
+            const prompt = document.getElementById('prompt').value;
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const generateBtn = document.getElementById('generateBtn');
+
+            if (!prompt) {
+                alert('Please enter a prompt first!');
+                return;
+            }
+
+            loading.style.display = 'block';
+            generateBtn.disabled = true;
+            result.innerHTML = '';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/generate-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate image');
+                }
+
+                result.innerHTML = `
+                    <div class="video-container">
+                        <h3>Your image has been generated!</h3>
+                        <img src="${data.image}" alt="Generated marketing image" style="max-width: 100%; border-radius: 8px;">
+                        <p style="margin-top: 1rem;">
+                            <a href="${data.image}" target="_blank" class="download-btn">View Full Image</a>
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <p>Error: ${error.message}</p>
+                        <p>Please try a different prompt or contact support if the problem persists.</p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+                generateBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
